@@ -1,0 +1,103 @@
+---
+title: "STAT 545A Milestone 1 for Mini Data Analysis"
+author: Jiahao Li (50462670)
+output: github_document
+---
+
+```{r, error = TRUE}
+library(datateachr)
+library(tidyverse)
+```
+
+## Task 1: Choose your favorite dataset (10 points)
+
+### Candidate 1: `steam_games`
+
+```{r, error = TRUE}
+print(class(steam_games))
+print(dim(steam_games))
+print(colnames(steam_games))
+```
+
+### Candidate 2: `cancer_sample`
+```{r, error = TRUE}
+print(class(cancer_sample))
+print(dim(cancer_sample))
+print(colnames(cancer_sample))
+```
+
+### Candidate 3: `parking_meters`
+```{r, error = TRUE}
+print(class(parking_meters))
+print(dim(parking_meters))
+print(colnames(parking_meters))
+```
+
+### Candidate 4: `vancouver_trees`
+```{r, error = TRUE}
+print(class(vancouver_trees))
+print(dim(vancouver_trees))
+print(colnames(vancouver_trees))
+```
+
+### Choice 1: `steam_games`
+I selected this dataset because I am a deep PC game lover and a steam game collector. Every time when promotion season comes close, such as Thanksgiving or Christmas, I would buy a bunch of steam games on discount to enrich my steam libraries. By analyzing this `steam_games` dataset, I would have the chance to explore the relationship between discount and other attributes so that I can adjust my purchase strategy regarding the optimal timing to buy a game.
+
+### Potential Research Topic of `steam_games`
+The relationship between the game and the promotion intensity, which could be a purchase strategy for steam game collectors, and also be a deduction on company's market startegy.
+
+### Choice 2: `cancer_sample`
+Cancer is still one of the biggest enemies to human beings. The `cancer_sample` dataset contains all kinds of parameters of cancer cell and the property of the tumor. Analysis on this dataset may offer a perspective on prediction of the tumor, which may contribute to cancer research and treatment.
+
+### Potential Research Topic of `cancer_sample`
+The relationship between the various parameters of the cancer cell and the properties of the tumor, which can be used as a prediction method for tumor prevention and treatment. The exploration on relationships between variables could also be the selection of features for machine learning purpose.
+
+### Final Choice: `cancer_sample`
+As I mentioned above, Analysis on this dataset may offer a perspective on prediction of the tumor, which may contribute to cancer research and treatment. Besides, I have a little background on nano biology, which might be helpful to this data analysis project.
+
+
+## Task 2: Exploring your dataset (15 points)
+
+### 1. Plot the distribution of a numeric vairable
+```{r, error=TRUE}
+distribution_of_radius <- ggplot(cancer_sample, aes(radius_mean, ..density..)) +
+    geom_histogram(binwidth = 0.2)
+print(distribution_of_radius)
+```
+
+The distribution of the radius of cancer cells can offer a perspective on large a normal cancer cell could be, based on which the doctor can make a simple deduction if the patient has cancer or not via a routine inspection.
+
+
+### 4. Explore the relationship between 2 variables in a plot
+```{r, error=TRUE}
+radius_vs_compactness <- ggplot(cancer_sample, aes(radius_mean, compactness_mean)) +
+    geom_point(aes(color = diagnosis))
+print(radius_vs_compactness)
+```
+
+This plot is aimed to explore how cancer cells are arranged in human tissue. As the radius of cancer cells increase, is the compactness of the cells increase or descrease? Based on the plot above, there seems no particular relationship between these 2 variables. However, it shows that there does exist a relationship betweem the cell radius and the final diagnosis. Radius less than 15 are mostly classified as B, while more than 15 are mostly classified as M.
+
+### 6. Use a boxplot to look at the frequency of different observations within a single variable
+```{r, error=TRUE}
+boxplot_of_compactness <- ggplot(cancer_sample, aes(diagnosis, compactness_mean)) +
+    geom_boxplot(width = 0.2) +
+    geom_jitter(width = 0.2, alpha = 0.2)
+print(boxplot_of_compactness)
+```
+
+The compactness of cells arrangement could be of great use in medical imaging. Doctors may be able to make a simple deduction if the patient has cancer or not via a routine imagine. In the plot above, it seems that compactness aggregate on different values based on the diagnosis. Compactness of cancer cells classified as B has smaller value. However, this difference is not quite obvious.
+
+### 8. Use a density plot to explore any of the variables
+```{r, error=TRUE}
+density_of_radius <- ggplot(cancer_sample, aes(radius_mean)) +
+    geom_density(aes(fill = diagnosis), alpha = 0.3)
+print(density_of_radius)
+```
+
+This plot again explores the relationship between the distribution of cancer cell radius and the final diagnosis. Apparently, cancer cells diagnosis as B and M have their own independent normal distribution curve. This coule also be very useful to make an initial deduction via a routine diagnosis.
+
+## Task 3: Write your research questions (5 points)
+1. Are these variables all independent (orthogonal) to each other? For example, is there any relationship between any two of these variables? If so, are we able to reduce the number of features by doing some principle component analysis (PCA)?
+2. The dataset does not mention which body part does these cancer sample come from. Would the data differs a lot for different body parts?
+3. What are the top 3 variables that could be most likely used for a simple diagnosis to determine whether the cancer is B or M?
+4. Is there any other data that could be derived from the given variables? Will the derived data contribute more to the final diagnosis of the cancer cells compared to the original variables?
