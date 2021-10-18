@@ -1,0 +1,173 @@
+---
+title: "STAT 545A Milestone 2 for Mini Data Analysis"
+author: Jiahao Li (50462670)
+output: github_document
+---
+
+```{r, error = TRUE}
+suppressMessages(library(datateachr))
+suppressMessages(library(tidyverse))
+suppressMessages(library(scales))
+suppressMessages(library(corrplot))
+```
+
+## Data Overview
+To start with, I am going to post the basic metrics of `cancer_sample` that I am going to work with throughout this data analysis project.
+```{r, error = TRUE}
+dim(cancer_sample)
+colnames(cancer_sample)
+```
+
+## Task 1: Process and Summarize the Data (15 points)
+
+### 1.1 Review of Research Questions (2.5 points)
+1. Is there an obvious difference in radius between benign and malignant tumors?
+2. Are the variables concave points and fractal dimension related?
+3. Is compactness a valuable variable to determine whether a tumor is benign or malign?
+4.
+
+### 1.2 Summarizing & Graphing (10 points)
+
+#### Question 1
+> Is there an obvious difference in radius between benign and malignant tumors?
+
+##### Summarizing
+> 1. Compute the range, mean, and two other summary statistics of one numerical variable across the groups of one categorical variable from your data.
+
+```{r, error=TRUE}
+q1_sum <- cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarise(mean = mean(radius_mean),
+            min = min(radius_mean),
+            max = max(radius_mean),
+            median = median(radius_mean),
+            standard = sd(radius_mean))
+q1_sum
+```
+
+##### Graphing
+> 1. Create a graph out of summarized variables that has at least two geom layers.
+
+```{r, error=TRUE}
+q1_graph <- ggplot(cancer_sample, aes(diagnosis, radius_mean)) +
+  geom_boxplot(width = 0.2) +
+  geom_jitter(width = 0.2, alpha = 0.2) +
+  geom_text(data = q1_sum, aes(y = mean, label = round(mean, 1)), hjust=-2) +
+  labs(y = "Mean Radius", x = "Diagnosis")
+q1_graph
+```
+
+##### Analyzing
+The summarizing table illustrates that every summary statistics of malignant tumors are about 50% larger than that of benign tumors. The boxplot graph also emphasizes this feature, but also shows an overlap between these two kinds of samples. We can plot a density graph to take a more intuitive look at the overlap:
+```{r, error=TRUE}
+q1_analysis <- ggplot(cancer_sample, aes(radius_mean)) + 
+  geom_density(aes(fill = diagnosis), alpha = 0.3) +
+  labs(y = "Density", x = "Mean Radius", fill = "Diagnosis")
+q1_analysis
+```
+
+The density graph shows that benign and malignant tumors have their own independent normal distribution curve regarding to radius. Also, the significant difference between these two curves make it more sense for results of the above summarizing and graphing operations, which means both of them helps answer the research question. However, it is also worth noting that there is still a big overlap between benign and malignant samples, which means that a diagnosis cannot be made based on radius only.
+
+
+#### Question 2
+> Are the variables concave points and fractal dimension related?
+
+##### Summarizing
+> 1. Compute the range, mean, and two other summary statistics of one numerical variable across the groups of one categorical variable from your data.
+
+```{r, error=TRUE}
+q2_sum <- cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarise(mean = mean(fractal_dimension_mean),
+            min = min(fractal_dimension_mean),
+            max = max(fractal_dimension_mean),
+            median = median(fractal_dimension_mean),
+            standard_deviation = sd(fractal_dimension_mean))
+q2_sum
+```
+
+##### Graphing
+> 6. Create a graph of your choosing, make one of the axes logarithmic, and format the axes labels so that they are “pretty” or easier to read.
+
+```{r, error=TRUE}
+q2_graph <- ggplot(cancer_sample, aes(fractal_dimension_mean, concave_points_mean)) +
+  geom_point() +
+  scale_y_continuous(trans = "log10",
+                     breaks = trans_breaks("log10", function(x) 10^x),
+                     labels = trans_format("log10", math_format(10^.x))) +
+  labs(y = "Concave Points (Logarithm)", x = "Fractal Dimension")
+q2_graph
+```
+
+##### Analyzing
+The research question asks for the relationship between two variables, concave points and fractal dimension. However, the summarizing option only selects one variable, which is obviously useless. However, the graph above shows the distribution of concave points (y-axis) against fractal dimension(x-axis). Y-axis is scaled in logarithm of 10. It can be seen from the graph that the relationship between these two variables is not quite intuitive. However, there is still a trend showing that as fractal dimension increases, concave points increases as well. Therefore, the graph indicates that there is a positive correlation between these two variables.
+
+To take a deeper look at the correlation among variables, we can plot a correlation matrix to illustrate that:
+```{r, error=TRUE}
+sub_sample <- cancer_sample %>%
+  select(radius_mean, perimeter_mean, area_mean, texture_mean, smoothness_mean, concavity_mean, symmetry_mean, compactness_mean, concave_points_mean, fractal_dimension_mean)
+
+res <- cor(sub_sample)
+
+corrplot(res, type = "upper", order = "hclust", tl.col = "black", tl.srt = 45)
+```
+
+The correlation matrix shows that there are not many negative correlations among these variables. It makes sense that area, radius, perimeter, and concave points have very strong positive correlation to each other for that they are mathematically related. It can also been seen that there is a high positive correlation between concave points and compactness. This correlation matrix makes it easy and intuitive to see the relationship between each variables, which may contribute to future study.
+
+#### Question 3
+> Is compactness a valuable variable to determine whether a tumor is benign or malign?
+
+##### Summarizing
+> 3. Create a categorical variable with 3 or more groups from an existing numerical variable.
+
+```{r, error=TRUE}
+q3_stat <- cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarise(mean = mean(compactness_mean),
+            min = min(compactness_mean),
+            max = max(compactness_mean))
+q3_stat
+```
+First I derive the summarizing statistics of commpactness so that I can use the min, mean, and max value to classfy compactness from numeric to categorical.
+
+```{r, error=TRUE}
+q3_classify <- cancer_sample %>%
+  select(diagnosis, compactness_mean) %>%
+  arrange(compactness_mean) %>%
+  mutate(compactness = case_when (compactness_mean < 0.1 ~ "S",
+  compactness_mean < 0.15 ~ "M",
+  TRUE ~ "L"))
+
+q3_sum <- count(q3_classify, diagnosis, compactness)
+q3_sum
+```
+
+##### Graphing
+> 5. Create a graph out of summarized variables that has at least two geom layers.
+
+```{r, error=TRUE}
+q3_graph <- ggplot(cancer_sample, aes(diagnosis, compactness_mean)) +
+  geom_boxplot(width = 0.2) +
+  geom_jitter(width = 0.2, alpha = 0.2) +
+  geom_text(data = q3_stat, aes(y = mean, label = round(mean, 3)), hjust=-2) +
+  labs(y = "Mean Radius", x = "Diagnosis")
+q3_graph
+```
+
+##### Analyzing
+It can be seen from the summarizing table that the number of 'S' benign samples are significant larger than that of malign samples. Also the number of 'L' benign samples are much smaller than that of malign samples. This indicates that compactness does have its own value as a reference to determine the property of a tumor. However, the graphing part is less intuitive for that it is supposed to be a graph out of summarized variables. Here I select mean, which is not that useful as the difference between 'M' benign and malign tumors is very small.
+
+#### Question 4
+##### Summarizing
+##### Graphing
+##### Analyzing
+
+### 1.3 Progress (2.5 points)
+
+## Task 2: Tidy the Data (12.5 points)
+
+### 2.1 Data Identify (2.5 points)
+
+### 2.2 Tidy/Untidy Data (5 points)
+
+### 2.3 Research Refinement (5 points)
