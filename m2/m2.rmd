@@ -155,19 +155,92 @@ q3_graph
 ```
 
 ##### Analyzing
-It can be seen from the summarizing table that the number of 'S' benign samples are significant larger than that of malign samples. Also the number of 'L' benign samples are much smaller than that of malign samples. This indicates that compactness does have its own value as a reference to determine the property of a tumor. However, the graphing part is less intuitive for that it is supposed to be a graph out of summarized variables. Here I select mean, which is not that useful as the difference between 'M' benign and malign tumors is very small.
+It can be seen from the summarizing table that the number of 'S' benign samples are significant larger than that of malign samples. Also the number of 'L' benign samples are much smaller than that of malign samples. This indicates that compactness does have its own value as a reference to determine the property of a tumor. However, the graphing part is less intuitive for that it is supposed to be a graph out of summarized variables. Here I select mean, which is not that useful as the difference between 'M' benign and malign tumors is very small. We can plot a density graph to take a more intuitive look at the value of compactness:
+```{r, error=TRUE}
+q3_analysis <- ggplot(cancer_sample, aes(compactness_mean)) + 
+  geom_density(aes(fill = diagnosis), alpha = 0.3) +
+  labs(y = "Density", x = "Compactness", fill = "Diagnosis")
+q3_analysis
+```
+
+It can be seen that there is still a big overlap between benign and malignant samples, which means that extra variables are needed for the final diagnosis.
 
 #### Question 4
+> Is there a linear relationship between redius and compactness?
+
 ##### Summarizing
+> 1. Compute the range, mean, and two other summary statistics of one numerical variable across the groups of one categorical variable from your data.
+
+```{r, error=TRUE}
+q4_sum <- cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarise(mean = mean(compactness_mean),
+            min = min(compactness_mean),
+            max = max(compactness_mean),
+            median = median(compactness_mean),
+            standard_deviation = sd(compactness_mean))
+q4_sum
+```
+
 ##### Graphing
+> 6. Create a graph of your choosing, make one of the axes logarithmic, and format the axes labels so that they are “pretty” or easier to read.
+
+```{r, error=TRUE}
+q4_graph <- ggplot(cancer_sample, aes(radius_mean, compactness_mean)) +
+  geom_point() +
+  geom_smooth(method = lm, formula = y ~ x) +
+  scale_y_continuous(trans = "log10",
+                     breaks = trans_breaks("log10", function(x) 10^x),
+                     labels = trans_format("log10", math_format(10^.x))) +
+  labs(y = "Compactness (Logarithm)", x = "Radius")
+q4_graph
+```
+
 ##### Analyzing
+The research question asks for the relationship between two variables, radius and compactness. However, the summarizing option only selects one variable, which is obviously useless. However, the graph above shows the distribution of compactness (y-axis) against radius (x-axis). Y-axis is scaled in logarithm of 10. The straight line lies in the graph is the fit of the relationship between radius and compactness, it can be seen that the grey part around the line is not very thick, which means that there is a linear relationship between the variable radius and compactness.
 
 ### 1.3 Progress (2.5 points)
 
 ## Task 2: Tidy the Data (12.5 points)
 
 ### 2.1 Data Identify (2.5 points)
+Here I select `diagnosis`, `radius_mean`, `texture_mean`, `smoothness_mean`, `concavity_mean`, `symmetry_mean`, `compactness_mean`, `fractal_dimension_mean` to check the dataset is tidy or not:
+```{r, error=TRUE}
+q1 <- cancer_sample %>%
+    select(diagnosis, radius_mean, texture_mean, smoothness_mean, concavity_mean, symmetry_mean, compactness_mean, fractal_dimension_mean)
+q1
+```
+It can be seen from above that there are 7 numerical columns and 1 categorical column in this derived tibble. To check if there is any null value in it, we can make the following operation:
+```{r, error=TRUE}
+q1 %>%
+  rowwise %>%
+  summarise(NA_count = sum(is.na(.))) %>%
+  sum()
+```
+
+From above tibbles it can be determined that `cancer_sample` is **tidy** since that:
+1. Each row is an observation of a categorical value followed by multiple numerical values
+2. Each column contains only one variable
+3. Each cell contains only one value
 
 ### 2.2 Tidy/Untidy Data (5 points)
+
+#### Untidy
+First the derived data obtained from `2.1` is untidied by uniting `compactness_mean` and `texture_mean` into `error`:
+```{r, error=TRUE}
+q2_untidy <- q1 %>%
+  unite(col = "error", c(compactness_mean, texture_mean), sep = ",")
+q2_untidy
+```
+It can be seen from the tibble above that the type of `error` becomes `char` and there is `,` between its values, which violates the tidy data rule. Therefore, the data is successfully untidied.
+
+#### Tidy
+To tidy the untidied data is quite straghtforward by just separating `error` into `compactness_mean` and `texture_mean`, and change the type of `error` from `chr` to `dbl`:
+```{r, error=TRUE}
+q2_tidy <- q2_untidy %>%
+  separate("error", into = c("compactness_mean", "texture_mean"), sep = ',') %>%
+  mutate(across(c("compactness_mean", "texture_mean"), as.numeric))
+q2_tidy
+```
 
 ### 2.3 Research Refinement (5 points)
