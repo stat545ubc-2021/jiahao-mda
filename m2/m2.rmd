@@ -21,10 +21,11 @@ colnames(cancer_sample)
 ## Task 1: Process and Summarize the Data (15 points)
 
 ### 1.1 Review of Research Questions (2.5 points)
+>
 1. Is there an obvious difference in radius between benign and malignant tumors?
 2. Are the variables concave points and fractal dimension related?
 3. Is compactness a valuable variable to determine whether a tumor is benign or malign?
-4.
+4. Is there a linear relationship between redius and compactness?
 
 ### 1.2 Summarizing & Graphing (10 points)
 
@@ -100,7 +101,7 @@ q2_graph
 ```
 
 ##### Analyzing
-The research question asks for the relationship between two variables, concave points and fractal dimension. However, the summarizing option only selects one variable, which is obviously useless. However, the graph above shows the distribution of concave points (y-axis) against fractal dimension(x-axis). Y-axis is scaled in logarithm of 10. It can be seen from the graph that the relationship between these two variables is not quite intuitive. However, there is still a trend showing that as fractal dimension increases, concave points increases as well. Therefore, the graph indicates that there is a positive correlation between these two variables.
+The research question asks for the relationship between two variables, concave points and fractal dimension. The summarizing option only selects one variable, which is obviously useless. However, the graph above shows the distribution of concave points (y-axis) against fractal dimension(x-axis). Y-axis is scaled in logarithm of 10. It can be seen from the graph that the relationship between these two variables is not quite intuitive. However, there is still a trend showing that as fractal dimension increases, concave points increases as well. Therefore, the graph indicates that there is a positive correlation between these two variables.
 
 To take a deeper look at the correlation among variables, we can plot a correlation matrix to illustrate that:
 ```{r, error=TRUE}
@@ -169,16 +170,12 @@ It can be seen that there is still a big overlap between benign and malignant sa
 > Is there a linear relationship between redius and compactness?
 
 ##### Summarizing
-> 1. Compute the range, mean, and two other summary statistics of one numerical variable across the groups of one categorical variable from your data.
+> 2. Compute the number of observations for at least one of your categorical variables.
 
 ```{r, error=TRUE}
 q4_sum <- cancer_sample %>%
   group_by(diagnosis) %>%
-  summarise(mean = mean(compactness_mean),
-            min = min(compactness_mean),
-            max = max(compactness_mean),
-            median = median(compactness_mean),
-            standard_deviation = sd(compactness_mean))
+  count()
 q4_sum
 ```
 
@@ -197,9 +194,24 @@ q4_graph
 ```
 
 ##### Analyzing
-The research question asks for the relationship between two variables, radius and compactness. However, the summarizing option only selects one variable, which is obviously useless. However, the graph above shows the distribution of compactness (y-axis) against radius (x-axis). Y-axis is scaled in logarithm of 10. The straight line lies in the graph is the fit of the relationship between radius and compactness, it can be seen that the grey part around the line is not very thick, which means that there is a linear relationship between the variable radius and compactness.
+The research question asks for the relationship between two variables, radius and compactness. The summarizing option only counts the number of observations for each category, which is obviously useless. However, the graph above shows the distribution of compactness (y-axis) against radius (x-axis). Y-axis is scaled in logarithm of 10. The straight line lies in the graph is the fit of the relationship between radius and compactness, it can be seen that the grey part around the line is not very thick, which means that there is a linear relationship between the variable radius and compactness.
 
 ### 1.3 Progress (2.5 points)
+>
+1. Is there an obvious difference in radius between benign and malign tumors?
+2. Are the variables concave points and fractal dimension related?
+3. Is compactness a valuable variable to determine whether a tumor is benign or malign?
+4. Is there a linear relationship between radius and compactness?
+
+For question 1, there is an obvious difference in radius between benign and malign tumors as they have their own normal distribution in the density graph.
+
+Question 3 is a similar case as question 1. They have their own normal distribution in the density graph, but there is also a huge overlap inside, which means only compactness may not be enough to determine whether a tumor is benign or malign. Therefore, more research needs to be done in this question.
+
+The relationship between concave points and fractal dimension described in question 2 can be obtained in the correlation matrix. As the graph shows there is a high positive correlation between these two variables.
+
+Although I have obtained a line to fit the relationship between radius and compactness in question 4, it is not intuitive enough to see the linear correlation. However, the result is still very interesting for that the two variables and often not correlated, especially in linear. More methods needs to be done in this question.
+
+By this stage, my research questions can be refined to question 3 and 4.
 
 ## Task 2: Tidy the Data (12.5 points)
 
@@ -235,7 +247,7 @@ q2_untidy
 It can be seen from the tibble above that the type of `error` becomes `char` and there is `,` between its values, which violates the tidy data rule. Therefore, the data is successfully untidied.
 
 #### Tidy
-To tidy the untidied data is quite straghtforward by just separating `error` into `compactness_mean` and `texture_mean`, and change the type of `error` from `chr` to `dbl`:
+Tidying the untidy data is quite straightforward by just separating `error` into `compactness_mean` and `texture_mean`, and change the type of `error` from `chr` to `dbl`:
 ```{r, error=TRUE}
 q2_tidy <- q2_untidy %>%
   separate("error", into = c("compactness_mean", "texture_mean"), sep = ',') %>%
@@ -244,3 +256,21 @@ q2_tidy
 ```
 
 ### 2.3 Research Refinement (5 points)
+My final 2 selections are question 3 and 4:
+> 
+3. Is compactness a valuable variable to determine whether a tumor is benign or malign?
+4. Is there a linear relationship between radius and compactness?
+
+On the one hand, question 1 has been answered because there is an obvious difference in radius between benign and malign tumors as they have their own normal distribution in the density graph. The correlation matrix answers question 2 regarding the relationship between cancave points and fractal dimension. On the other hand, compactness is often considered as rarely related to the diagnosis, study on this topic may contribute to the treatment of cancer. Radius and compactness looks unrelated, but they do have some linear relationship according to analysis on question 4, which may contribute to the study of pathology of tumor cells.
+
+Therefore, for milestone 3, I make some modifications to the original data:
+```{r, error=TRUE}
+q2_refine <- cancer_sample %>%
+  rename(c("Compactness"="compactness_mean", "Radius"="radius_mean"))%>%
+  select(diagnosis, Radius, Compactness) %>%
+  arrange(Radius)  %>%
+  mutate(across(where(is.numeric), ~ round(., 3)))
+q2_refine
+```
+
+
