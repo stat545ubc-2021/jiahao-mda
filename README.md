@@ -18,4 +18,4 @@ This milestone compares the given 8 datasets and finally selected `cancer_sample
 This milestone explores `cancer_sample` based on the 4 research questions proposed from [milestone 1](m1/m1.md). In the end, it refines the research questions from 4 to 2, and also offers a new version of the orginal dataset for further use. Report of this milestone is [here](m2/m2.md).
 
 ## Milestone 3
-This milestone focuses on the refined 2 research questions from [milestone 2](m2/m2.md). It manipulated the data with factors, fits a model object to the data, as well as file I/O in the end. The derived files are stored in the `output` folder.
+This milestone focuses on the refined 2 research questions from [milestone 2](m2/m2.md). It manipulated the data with factors, fits a model object to the data, as well as file I/O in the end. The derived files are stored in the `output` folder. Report of this milestone is [here](m3/m3.md).
